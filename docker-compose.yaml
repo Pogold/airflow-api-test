@@ -88,6 +88,17 @@ x-airflow-common:
       condition: service_healthy
 
 services:
+  postgres_jokes:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: jokes
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   postgres:
     image: postgres:16
     environment:
@@ -335,3 +346,4 @@ services:
 
 volumes:
   postgres-db-volume:
+  postgres_data:
