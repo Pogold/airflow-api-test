@@ -95,9 +95,15 @@ services:
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: jokes
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
 
   postgres:
     image: postgres:16
