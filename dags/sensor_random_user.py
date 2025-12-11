@@ -4,7 +4,7 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.providers.standard.sensors.external_task import ExternalTaskSensor
 import logging
-from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 
 
 default_args = {
@@ -73,17 +73,17 @@ with DAG(
     wait_for_user_data = ExternalTaskSensor(
         task_id='wait_for_user_data_sync',
         external_dag_id='random_user_dag',
-        allowed_states=['success'],
-        failed_states=['failed', 'skipped'],
+        # allowed_states=['success'],
+        # failed_states=['failed', 'skipped'],
         execution_delta=timedelta(days=1),
         mode='reschedule',
         timeout=3600,
         poke_interval=300,
     )
 
-    create_table_if_not_exists = PostgresOperator(
+    create_table_if_not_exists = SQLExecuteQueryOperator(
         task_id='create_aggregation_table',
-        postgres_conn_id='postgres_default',
+        conn_id='postgres_default',
         sql="""
             CREATE TABLE IF NOT EXISTS user_registrations_daily (
                 id SERIAL PRIMARY KEY,
@@ -99,9 +99,9 @@ with DAG(
         python_callable=calculate_registered_users,
     )
 
-    validate_results = PostgresOperator(
+    validate_results = SQLExecuteQueryOperator(
         task_id='validate_calculation',
-        postgres_conn_id='postgres_default',
+        conn_id='postgres_default',
         sql="""
             DO $$
             DECLARE
